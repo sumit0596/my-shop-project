@@ -43,6 +43,7 @@ exports.getOne = async (req, res) => {
 };
 
 exports.update = async (req, res) => {
+
   try {
 
     const files = req.files || [];
@@ -53,7 +54,6 @@ exports.update = async (req, res) => {
       ...req.body
     };
 
-    // only replace images if uploaded
     if (imagePaths.length > 0) {
       payload.images = imagePaths;
     }
@@ -65,6 +65,9 @@ exports.update = async (req, res) => {
     });
 
   } catch (err) {
+
+    console.error(err);
+
     res.status(400).json({
       error: err.message
     });
