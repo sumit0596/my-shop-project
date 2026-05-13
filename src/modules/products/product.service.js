@@ -11,7 +11,15 @@ exports.createProduct = async (data) => {
 };
 
 exports.getProducts = async () => {
-    return repo.findAll();
+
+  const products = await repo.findAll();
+
+  return products.map(product => ({
+    ...product,
+    images: product.images
+      ? JSON.parse(product.images)
+      : []
+  }));
 };
 
 exports.getProduct = async (id) => {

@@ -3,12 +3,29 @@ const xlsx = require('xlsx');
 const fs = require('fs');
 
 exports.create = async (req, res) => {
-    try {
-        const id = await service.createProduct(req.body);
-        res.json({ message: 'Product created', id });
-    } catch (err) {
-        res.status(400).json({ error: err.message });
-    }
+  try {
+
+    const files = req.files || [];
+
+    const imagePaths = files.map(file => file.filename);
+
+    const payload = {
+      ...req.body,
+      images: imagePaths
+    };
+
+    const id = await service.createProduct(payload);
+
+    res.json({
+      message: 'Product created',
+      id
+    });
+
+  } catch (err) {
+    res.status(400).json({
+      error: err.message
+    });
+  }
 };
 
 exports.getAll = async (req, res) => {
@@ -26,12 +43,32 @@ exports.getOne = async (req, res) => {
 };
 
 exports.update = async (req, res) => {
-    try {
-        await service.updateProduct(req.params.id, req.body);
-        res.json({ message: 'Updated successfully' });
-    } catch (err) {
-        res.status(400).json({ error: err.message });
+  try {
+
+    const files = req.files || [];
+
+    const imagePaths = files.map(file => file.filename);
+
+    const payload = {
+      ...req.body
+    };
+
+    // only replace images if uploaded
+    if (imagePaths.length > 0) {
+      payload.images = imagePaths;
     }
+
+    await service.updateProduct(req.params.id, payload);
+
+    res.json({
+      message: 'Updated successfully'
+    });
+
+  } catch (err) {
+    res.status(400).json({
+      error: err.message
+    });
+  }
 };
 
 exports.remove = async (req, res) => {
