@@ -2,7 +2,7 @@
 const repo = require('./product.repository');
 
 exports.createProduct = async (data) => {
-    
+
     if (!data.title || !data.price || !data.category_id) {
         throw new Error('Missing required fields');
     }
@@ -12,25 +12,51 @@ exports.createProduct = async (data) => {
 
 exports.getProducts = async () => {
 
-  const products = await repo.findAll();
+    const products = await repo.findAll();
 
-  return products.map(product => ({
-    ...product,
-    images: product.images
-      ? JSON.parse(product.images)
-      : []
-  }));
+    return products.map(product => ({
+        ...product,
+        images: product.images
+            ? JSON.parse(product.images)
+            : []
+    }));
 };
 
 exports.getProduct = async (id) => {
+
     const product = await repo.findById(id);
-    if (!product) throw new Error('Product not found');
-    return product;
+
+    if (!product) {
+        throw new Error('Product not found');
+    }
+
+    return {
+        ...product,
+        images: product.images
+            ? JSON.parse(product.images)
+            : []
+    };
 };
 
 exports.updateProduct = async (id, data) => {
+
     const existing = await repo.findById(id);
-    if (!existing) throw new Error('Product not found');
+
+    if (!existing) {
+        throw new Error('Product not found');
+    }
+
+    if (data.images) {
+
+        const oldImages = existing.images
+            ? JSON.parse(existing.images)
+            : [];
+
+        data.images = [
+            ...oldImages,
+            ...data.images
+        ];
+    }
 
     await repo.update(id, data);
 };
@@ -50,7 +76,7 @@ exports.updateStatus = async (id, status) => {
 
 exports.bulkCreate = async (products) => {
     for (const item of products) {
-        
+
         if (!item.title || !item.price || !item.stock || !item.category_id) {
             throw new Error('Invalid data in Excel');
         }

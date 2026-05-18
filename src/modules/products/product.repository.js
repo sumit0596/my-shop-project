@@ -46,11 +46,23 @@ exports.create = async (data) => {
 };
 
 exports.findAll = async () => {
+
   const [rows] = await pool.execute(
-    `SELECT id, title, slug, price, stock_available, status, category_id
-     FROM products
-     WHERE status='active'`
+    `
+    SELECT 
+      id,
+      title,
+      slug,
+      price,
+      stock_available,
+      status,
+      category_id,
+      images
+    FROM products
+    ORDER BY id DESC
+    `
   );
+
   return rows;
 };
 
@@ -63,6 +75,7 @@ exports.findById = async (id) => {
 };
 
 exports.update = async (id, data) => {
+
   const fields = [];
   const values = [];
 
@@ -89,10 +102,6 @@ exports.update = async (id, data) => {
   if (data.category_id !== undefined) {
     fields.push("category_id=?");
     values.push(data.category_id || null);
-  }
-
-  if (fields.length === 0) {
-    throw new Error("No fields to update");
   }
 
   if (data.stock_reserved !== undefined) {
@@ -135,9 +144,15 @@ exports.update = async (id, data) => {
     values.push(data.height);
   }
 
+  // images
   if (data.images !== undefined) {
     fields.push("images=?");
     values.push(JSON.stringify(data.images));
+  }
+
+  // check AFTER all fields
+  if (fields.length === 0) {
+    throw new Error("No fields to update");
   }
 
   values.push(id);

@@ -1,27 +1,39 @@
 const service = require('./product.service');
+const imagekit = require('../../config/imagekit');
 const xlsx = require('xlsx');
 const fs = require('fs');
 
 exports.create = async (req, res) => {
+
   try {
 
     const files = req.files || [];
-
-    const imagePaths = files.map(file => file.filename);
-
+    let uploadedImages = [];
+    for (const file of files) {
+      const response = await imagekit.upload({
+        file: file.buffer,
+        fileName: Date.now() + '-' + file.originalname,
+        folder: '/products'
+      });
+      uploadedImages.push(response.url);
+    }
     const payload = {
       ...req.body,
-      images: imagePaths
+      images: uploadedImages
     };
 
     const id = await service.createProduct(payload);
 
     res.json({
       message: 'Product created',
-      id
+      id,
+      images: uploadedImages
     });
 
   } catch (err) {
+
+    console.error(err);
+
     res.status(400).json({
       error: err.message
     });
@@ -48,25 +60,35 @@ exports.update = async (req, res) => {
 
     const files = req.files || [];
 
-    const imagePaths = files.map(file => file.filename);
+    let uploadedImages = [];
+
+    for (const file of files) {
+
+      const response = await imagekit.upload({
+        file: file.buffer,
+        fileName: Date.now() + '-' + file.originalname,
+        folder: '/products'
+      });
+
+      uploadedImages.push(response.url);
+    }
 
     const payload = {
       ...req.body
     };
 
-    if (imagePaths.length > 0) {
-      payload.images = imagePaths;
+    if (uploadedImages.length > 0) {
+      payload.images = uploadedImages;
     }
 
     await service.updateProduct(req.params.id, payload);
 
     res.json({
-      message: 'Updated successfully'
+      message: 'Updated successfully',
+      images: uploadedImages
     });
 
   } catch (err) {
-
-    console.error(err);
 
     res.status(400).json({
       error: err.message
